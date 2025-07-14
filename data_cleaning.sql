@@ -1,14 +1,13 @@
-/* Two tables contain the required data :
-a) xml_val_pre_2023
-b) xml_val
+/* The complete transaction records are contained in the main_transaction_log table .
+To begin our first analysis of the commission paid, we will create a new table with records 
+that were sent to the VAS provider being analysed. These records have a column that contains 
+a fixed length string that begins with the word "justbeta" followed by an 11 digit random 
+number. The required string starts at the twelfth position.
 
-There is an overlap of records in both tables, so there is a need to join them together into 
-a single table to perform the analysis.
 
-To perform the aforementioned, a UNION query will be executed.
+To perform the aforementioned, a select query to move the required records to a new table will be done first.
 */
-
-CREATE TABLE consolidated_records
-SELECT * FROM xml_val_pre_2023
-UNION 
-SELECT * FROM xml_val ORDER BY trans_date;
+CREATE TABLE justbeta_records
+SELECT * FROM main_transaction_log
+WHERE req LIKE '%justbeta%'
+AND req NOT LIKE '%irecharge%';
