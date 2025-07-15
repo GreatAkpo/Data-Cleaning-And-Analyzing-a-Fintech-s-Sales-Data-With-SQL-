@@ -23,3 +23,25 @@ update justbeta_records set transaction_ref=TRIM(REPLACE(JSON_EXTRACT(req,'$.ord
 /* From the above, the replace function is used to remove the double quotes that surround a text value 
 in JSON. The trim function was used to remove any whitespace at the beginning or end of the string
 */
+
+/*The first task is to determine if the transaction_refs in the justbeta_records, match the refs 
+in the providers table. A table was created to hold these records with their corresponding matched value
+The query to achieve this is below :
+*/
+
+
+CREATE TABLE matched_status SELECT justbeta_records.transaction_type,transaction_ref local_ref,ref provider_ref,
+ transaction_status,justbeta_records.amount,CASE WHEN justbeta_records.transaction_ref=provider_records.ref
+THEN 'Matched' ELSE 'Not Matched' END AS Matched_Status,resp server_response FROM 
+justbeta_records
+LEFT OUTER JOIN provider_records ON (transaction_ref=ref)
+
+/* We now extracted the several types of transactions carried out **/
+
+SELECT transaction_type
+FROM matched_status
+GROUP BY transaction_type
+
+
+
+
