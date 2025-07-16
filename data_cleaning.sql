@@ -42,6 +42,59 @@ SELECT transaction_type
 FROM matched_status
 GROUP BY transaction_type
 
+/* A table to hold the commission percentages for each transaction type was now created.
+This will enable us generate the expected commission, and match it against the value paid out by the 
+VAS provider */
+
+
+CREATE TABLE `commission_percentages` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `transaction_type` varchar(50) DEFAULT NULL,
+  `commission_percentage` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+);
+
+/* Insert commission values */
+insert  into `commission_percentages`(`id`,`transaction_type`,`commission_percentage`) values 
+(1,'JOS ELECTRICITY DISTRIBUTION','2'),
+(2,'JOS ELECTRICITY POSTPAID','2'),
+(3,'AIRTEL VTU','3.5'),
+(4,'MTN VTU','3.3'),
+(5,'GLO VTU','5.2'),
+(6,'AIRTEL DATA','3.5'),
+(7,'GLO DATA','5.2'),
+(8,'KANO ELECTRICITY DISCO','1.7'),
+(9,'ETISALAT VTU','6'),
+(10,'AEDC PREPAID','1.7'),
+(11,'(NULL)IKEJA TOKEN PURCHASE','1'),
+(12,'BENIN ELECTRICITY DISTRIBUTION COMPANY PREPAID','1.7'),
+(13,'ETISALAT DATA','6'),
+(14,'AEDC POSTPAID','1.7'),
+(15,'IBADAN DISCO PREPAID','1'),
+(16,'BENIN ELECTRICITY DISTRIBUTION COMPANY POSTPAID','1.7');
+
+
+
+DELIMITER $$
+
+CREATE
+   
+    FUNCTION `provider_records`.`get_commission`(transaction_type_val VARCHAR(50))
+    RETURNS VARCHAR(5)
+    /*LANGUAGE SQL
+    | [NOT] DETERMINISTIC
+    | { CONTAINS SQL | NO SQL | READS SQL DATA | MODIFIES SQL DATA }
+    | SQL SECURITY { DEFINER | INVOKER }
+    | COMMENT 'string'*/
+    BEGIN
+    DECLARE commission_percentage_val VARCHAR(5);
+    SELECT commission_percentage INTO commission_percentage_val FROM 
+    commission_percentages WHERE transaction_type=transaction_type_val;
+    RETURN commission_percentage_val;
+    END$$
+
+DELIMITER ;
+
 
 
 
