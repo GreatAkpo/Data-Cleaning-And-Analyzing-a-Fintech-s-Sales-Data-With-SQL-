@@ -73,27 +73,91 @@ insert  into `commission_percentages`(`id`,`transaction_type`,`commission_percen
 (15,'IBADAN DISCO PREPAID','1'),
 (16,'BENIN ELECTRICITY DISTRIBUTION COMPANY POSTPAID','1.7');
 
-
-
+/* A function was now created to fetch the commission percentage 
+that was used for the basis of our calculation */
 DELIMITER $$
 
-CREATE
-   
-    FUNCTION `provider_records`.`get_commission`(transaction_type_val VARCHAR(50))
-    RETURNS VARCHAR(5)
-    /*LANGUAGE SQL
-    | [NOT] DETERMINISTIC
-    | { CONTAINS SQL | NO SQL | READS SQL DATA | MODIFIES SQL DATA }
-    | SQL SECURITY { DEFINER | INVOKER }
-    | COMMENT 'string'*/
-    BEGIN
-    DECLARE commission_percentage_val VARCHAR(5);
+
+DROP FUNCTION IF EXISTS `get_commission_percentage`$$
+
+CREATE FUNCTION `get_commission_percentage`(transaction_type_val VARCHAR(50)) RETURNS VARCHAR(5) CHARSET utf8mb4
+    READS SQL DATA
+    COMMENT 'Fetches the commission percentage from the commission_percentage table, for the given transaction type'
+BEGIN
+    DECLARE commission_percentage_val VARCHAR(50);
     SELECT commission_percentage INTO commission_percentage_val FROM 
     commission_percentages WHERE transaction_type=transaction_type_val;
     RETURN commission_percentage_val;
     END$$
 
 DELIMITER ;
+
+/* Another function was created to fetch the amount
+that was used to generate the commission on the providers table.
+This amount will be used to compare with the amount on the justbeta_records table */
+
+DELIMITER $$
+
+
+DROP FUNCTION IF EXISTS `get_transaction_amount`$$
+
+CREATE  FUNCTION `get_transaction_amount`(ref_val VARCHAR(50)) RETURNS VARCHAR(50) CHARSET utf8mb4
+    READS SQL DATA
+    COMMENT 'Fetches the transaction amount from the providers table, for the given ref'
+BEGIN
+    DECLARE transaction_val VARCHAR(50);
+    SELECT amount INTO transaction_val FROM 
+    provider_records WHERE ref=ref_val
+    AND operation_type='vend';
+    RETURN transaction_val;
+    END$$
+
+DELIMITER ;
+
+
+
+
+/* Another function was created to fetch the commission on the providers table.
+This amount will be used to compare with the calculated commission based on the
+transaction amount in the justbeta_records table */
+
+DELIMITER $$
+
+
+DROP FUNCTION IF EXISTS `get_commission`$$
+
+CREATE FUNCTION `get_commission`(ref_val VARCHAR(50)) RETURNS VARCHAR(5) CHARSET utf8mb4
+    READS SQL DATA
+    COMMENT 'Fetches the commission from the providers table, for the given ref'
+BEGIN
+    DECLARE commission_val VARCHAR(50);
+    SELECT amount INTO commission_val FROM 
+    provider_records WHERE ref=ref_val
+    AND operation_type='commission';
+    RETURN commission_val;
+    END$$
+
+DELIMITER ;
+
+/* Three columns were now created on the matched_status table in order 
+to hold the return values of the 3 newly created functions **/
+
+ALTER TABLE `provider_records`.`matched_status` 
+ADD COLUMN `provider_amount` VARCHAR(45) NULL AFTER `server_response`,
+ADD COLUMN `provider_commission` VARCHAR(45) NULL AFTER `provider_amount`,
+ADD COLUMN `commission_percentage` VARCHAR(45) NULL AFTER `provider_commission`;
+
+
+/* The provider_amount is populated using the below query*/
+
+UPDATE matched_status
+SET provider_amount=get_transaction_amount(local_ref);
+
+
+
+
+
+
 
 
 
