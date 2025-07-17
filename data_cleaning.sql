@@ -153,6 +153,28 @@ ADD COLUMN `commission_percentage` VARCHAR(45) NULL AFTER `provider_commission`;
 UPDATE matched_status
 SET provider_amount=get_transaction_amount(local_ref);
 
+/* To get the commission paid by the provider, the get_commission function was called
+However this error was thrown : 'Error Code: 1172
+Result consisted of more than one row'
+This means that duplicate records exist.
+To find these records, a new table was created using the following query 
+utilizing a window function
+ */
+CREATE TABLE provider_row_numbers
+SELECT amount,ref,operation_type,ROW_NUMBER() OVER(
+PARTITION BY ref ORDER BY ref
+) row_num
+ FROM provider_records WHERE operation_type="commission"
+ ORDER BY ref
+
+ /** To eliminate these records with row numbers greater than 1,
+ a new table was created with single row numbers , ie row  numbers equal to 1 **/
+
+CREATE TABLE provider_single_row_numbers
+SELECT * FROM provider_row_numbers
+WHERE row_num=1
+
+
 
 
 
