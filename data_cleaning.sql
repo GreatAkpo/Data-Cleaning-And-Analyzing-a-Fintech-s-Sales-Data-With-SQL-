@@ -1,5 +1,6 @@
 /* The complete transaction records are contained in the main_transaction_log table .
-To begin our analysis, we will create a new table with records 
+To begin our
+ analysis, we will create a new table with records 
 that were sent to the VAS provider being analysed. These records have a column populated by JSON data
  that contains a fixed length string that begins with the word "justbeta" followed by an 11 digit random 
 number. The required string starts at the twelfth position.
@@ -213,6 +214,51 @@ where row_num > 1;
 after the data from the matched_status_single_row table was exported.
 The notebook is included in the repository
 **/ 
+
+/*The final stage of analysis is to discover if the correct amount of funds paid, were used 
+to fund the VAS provider wallet. A table was created holding the funding records
+on the local server **/
+CREATE TABLE agent_funding_requests 
+SELECT YEAR(trans_date) funding_year,DATE_FORMAT(trans_date,'%M') funding_month,
+SUM(amount) total_funding
+FROM main_transaction_log
+WHERE transaction_type='Virtual Account Funding'
+GROUP BY YEAR(trans_date),DATE_FORMAT(trans_date,'%M') ;
+
+/* A second table holding the records of wallet funding operations done by the VAS 
+provider was also created **/
+CREATE TABLE provider_funding 
+SELECT YEAR(transaction_time) funding_year,DATE_FORMAT(transaction_time,'%M') funding_month,
+SUM(amount) total_funding
+FROM provider_records
+WHERE operation_type='transfer_topup'
+GROUP BY YEAR(transaction_time),DATE_FORMAT(transaction_time,'%M') ;
+
+
+
+
+/**
+A CTE query was executed to find out the different fundings
+done by month and year, by the agents and on the VAS portal. The difference in these amounts
+was now calculated **/
+WITH agent_funding AS
+(
+SELECT funding_year,
+funding_month,
+total_funding
+FROM agent_funding_requests
+)
+SELECT agent_funding.funding_year agent_funding_year,agent_funding.funding_month agent_funding_month,
+COALESCE(provider_funding.funding_year,"No Provider Year Value") provider_funding_year,
+COALESCE(provider_funding.funding_month,"No Provider Month Value")  provider_funding_month,
+FORMAT(agent_funding.total_funding,2) agent_total_funding,
+FORMAT(COALESCE(provider_funding.total_funding,0),2) provider_total_funding,FORMAT(agent_funding.total_funding-(COALESCE(provider_funding.total_funding,0)),2)
+funding_difference
+FROM agent_funding
+LEFT JOIN provider_funding
+ON (agent_funding.funding_year=provider_funding.funding_year)
+AND (agent_funding.funding_month=provider_funding.funding_month)
+
 
 
 
