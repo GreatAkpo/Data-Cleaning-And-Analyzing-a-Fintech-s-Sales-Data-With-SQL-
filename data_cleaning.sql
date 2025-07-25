@@ -174,6 +174,35 @@ CREATE TABLE provider_single_row_numbers
 SELECT * FROM provider_row_numbers
 WHERE row_num=1
 
+/** The get_commission function was now altered to fetch records from the newly created
+table **/
+
+DELIMITER $$
+
+
+DROP FUNCTION IF EXISTS `get_commission`$$
+
+CREATE FUNCTION `get_commission`(ref_val VARCHAR(50)) RETURNS VARCHAR(50) CHARSET utf8mb4
+    READS SQL DATA
+    COMMENT 'Fetches the commission from the provider_single_row_numbers table, for the given ref'
+BEGIN
+    DECLARE commission_val VARCHAR(50);
+    SELECT amount INTO commission_val FROM 
+    provider_single_row_numbers WHERE ref=ref_val
+    AND operation_type='commission';
+    RETURN commission_val;
+    END$$
+
+DELIMITER ;
+
+/** The matched table records will now be spooled into a new table that 
+will contain row numbers, which will be used to eliminate duplicate records **/
+
+CREATE TABLE matched_status_single_row SELECT *,ROW_NUMBER() OVER (
+PARTITION BY local_ref ORDER BY local_ref
+) row_num
+FROM matched_status
+
 
 
 
