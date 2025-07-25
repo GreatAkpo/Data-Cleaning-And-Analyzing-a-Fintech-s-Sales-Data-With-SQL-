@@ -1,5 +1,5 @@
 /* The complete transaction records are contained in the main_transaction_log table .
-To begin our first analysis of the commission paid, we will create a new table with records 
+To begin our analysis, we will create a new table with records 
 that were sent to the VAS provider being analysed. These records have a column populated by JSON data
  that contains a fixed length string that begins with the word "justbeta" followed by an 11 digit random 
 number. The required string starts at the twelfth position.
@@ -36,7 +36,8 @@ THEN 'Matched' ELSE 'Not Matched' END AS Matched_Status,resp server_response FRO
 justbeta_records
 LEFT OUTER JOIN provider_records ON (transaction_ref=ref)
 
-/* We now extracted the several types of transactions carried out **/
+/*This table now fulfills the first objective of matching references.
+ We now extracted the several types of transactions carried out **/
 
 SELECT transaction_type
 FROM matched_status
@@ -208,7 +209,7 @@ FROM matched_status;
 DELETE from matched_status_single_row
 where row_num > 1;
 
-/** The remaining analysis is done in a Jupyter notebook,
+/** The remaining analysis for discovering commission discrepancies , is done in a Jupyter notebook,
 after the data from the matched_status_single_row table was exported.
 The notebook is included in the repository
 **/ 
