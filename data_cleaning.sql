@@ -142,7 +142,7 @@ DELIMITER ;
 /* Three columns were now created on the matched_status table in order 
 to hold the return values of the 3 newly created functions **/
 
-ALTER TABLE `provider_records`.`matched_status` 
+ALTER TABLE `matched_status` 
 ADD COLUMN `provider_amount` VARCHAR(45) NULL AFTER `server_response`,
 ADD COLUMN `provider_commission` VARCHAR(45) NULL AFTER `provider_amount`,
 ADD COLUMN `commission_percentage` VARCHAR(45) NULL AFTER `provider_commission`;
@@ -172,7 +172,7 @@ PARTITION BY ref ORDER BY ref
 
 CREATE TABLE provider_single_row_numbers
 SELECT * FROM provider_row_numbers
-WHERE row_num=1
+WHERE row_num=1;
 
 /** The get_commission function was now altered to fetch records from the newly created
 table **/
@@ -201,9 +201,17 @@ will contain row numbers, which will be used to eliminate duplicate records **/
 CREATE TABLE matched_status_single_row SELECT *,ROW_NUMBER() OVER (
 PARTITION BY local_ref ORDER BY local_ref
 ) row_num
-FROM matched_status
+FROM matched_status;
 
+/** Row numbers grater than 1 will now be removed **/
 
+DELETE from matched_status_single_row
+where row_num > 1;
+
+/** The remaining analysis is done in a Jupyter notebook,
+after the data from the matched_status_single_row table was exported.
+The notebook is included in the repository
+**/ 
 
 
 
