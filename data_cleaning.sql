@@ -150,7 +150,8 @@ ADD COLUMN `provider_commission` VARCHAR(45) NULL AFTER `provider_amount`,
 ADD COLUMN `commission_percentage` VARCHAR(45) NULL AFTER `provider_commission`;
 
 
-/* The provider_amount is populated using the below query*/
+/* The provider_amount is populated using the below query
+This value will then be compared against the amount column*/
 
 UPDATE matched_status
 SET provider_amount=get_transaction_amount(local_ref);
