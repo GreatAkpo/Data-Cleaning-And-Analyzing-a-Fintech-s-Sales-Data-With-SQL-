@@ -213,7 +213,7 @@ where row_num > 1;
 
 /** The remaining analysis for discovering commission discrepancies , is done in a Jupyter notebook,
 after the data from the matched_status_single_row table was exported.
-The notebook is included in the repository
+The notebook is included in the repository : readsqlqueryintodataframe.ipynb
 **/ 
 
 /*The final stage of analysis is to discover if the correct amount of funds paid, were used 
